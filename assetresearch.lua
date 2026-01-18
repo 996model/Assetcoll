@@ -418,3 +418,6 @@ end
 ----------------------------------------------------------------
 okButton.MouseButton1Click:Connect(startCollector)
 cantButton.MouseButton1Click:Connect(showCancelMessage)
+
+return function()
+end
