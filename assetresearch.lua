@@ -135,11 +135,41 @@ local cantFinalButton
 -- ASSET COLLECTION
 ----------------------------------------------------------------
 local soundSet, imageButtonSet, imageLabelSet, decalSet = {}, {}, {}, {}
+local globalIdSet = {} -- Set global para evitar IDs duplicados entre categorías
 local startTime
 local connection
 
 local function extractId(assetString)
 	return assetString:match("(%d+)")
+end
+
+-- Función para verificar si el asset debe ser filtrado
+local function shouldFilter(assetString)
+	-- Filtrar si contiene "AvatarHeadShot"
+	if assetString:find("AvatarHeadShot") then
+		return true
+	end
+	return false
+end
+
+-- Función para agregar asset solo si no está duplicado globalmente
+local function addAssetIfUnique(set, assetString)
+	if shouldFilter(assetString) then
+		return false
+	end
+
+	local id = extractId(assetString)
+	if id then
+		-- Verificar si el ID ya existe globalmente
+		if globalIdSet[id] then
+			return false
+		end
+		-- Marcar como usado globalmente y agregar al set específico
+		globalIdSet[id] = true
+		set[assetString] = true
+		return true
+	end
+	return false
 end
 
 local function buildIdNameList(set)
@@ -275,13 +305,13 @@ local function startCollector()
 	connection = RunService.RenderStepped:Connect(function()
 		for _, inst in ipairs(game:GetDescendants()) do
 			if inst:IsA("Sound") and inst.SoundId ~= "" then
-				soundSet[inst.SoundId] = true
+				addAssetIfUnique(soundSet, inst.SoundId)
 			elseif inst:IsA("ImageButton") and inst.Image ~= "" then
-				imageButtonSet[inst.Image] = true
+				addAssetIfUnique(imageButtonSet, inst.Image)
 			elseif inst:IsA("ImageLabel") and inst.Image ~= "" then
-				imageLabelSet[inst.Image] = true
+				addAssetIfUnique(imageLabelSet, inst.Image)
 			elseif inst:IsA("Decal") and inst.Texture ~= "" then
-				decalSet[inst.Texture] = true
+				addAssetIfUnique(decalSet, inst.Texture)
 			end
 		end
 
